@@ -12,7 +12,8 @@ interface FilterPanelProps {
   products: Product[];
 }
 
-function getUniqueValues(products: Product[], field: keyof Product): string[] {
+function getUniqueValues(products: Product[] | undefined, field: keyof Product): string[] {
+  if (!products || products.length === 0) return [];
   const values = new Set(products.map((p) => String(p[field])));
   return Array.from(values).sort();
 }
