@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
+  const { user, isAdmin } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-surface-raised/95 backdrop-blur supports-[backdrop-filter]:bg-surface-raised/80">
       <div className="container flex h-16 items-center justify-between">
@@ -16,9 +19,22 @@ const Header = () => {
             <p className="text-xs text-muted-foreground">Assentos Sanitários</p>
           </div>
         </Link>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Search className="h-4 w-4" />
-          <span className="hidden md:inline">Plataforma interna</span>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            <span className="hidden md:inline">Plataforma interna</span>
+          </div>
+          {isAdmin && (
+            <Link to="/admin" className="flex items-center gap-1.5 text-primary hover:underline font-medium">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
+          )}
+          {!user && (
+            <Link to="/login" className="text-muted-foreground hover:text-foreground text-xs">
+              Entrar
+            </Link>
+          )}
         </div>
       </div>
     </header>

@@ -1,21 +1,21 @@
-import { Filters, defaultFilters } from "@/data/types";
-import { getUniqueValues } from "@/data/products";
+import { Filters, defaultFilters, Product } from "@/data/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { X, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface FilterPanelProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  products: Product[];
 }
 
-const formats = getUniqueValues("format");
-const brands = getUniqueValues("brand");
-const materials = getUniqueValues("material");
-const fixationTypes = getUniqueValues("fixation_type");
+function getUniqueValues(products: Product[], field: keyof Product): string[] {
+  const values = new Set(products.map((p) => String(p[field])));
+  return Array.from(values).sort();
+}
 
 function CheckboxGroup({
   label,
@@ -93,8 +93,13 @@ function RangeInput({
   );
 }
 
-const FilterPanel = ({ filters, onChange }: FilterPanelProps) => {
+const FilterPanel = ({ filters, onChange, products }: FilterPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const formats = useMemo(() => getUniqueValues(products, "format"), [products]);
+  const brands = useMemo(() => getUniqueValues(products, "brand"), [products]);
+  const materials = useMemo(() => getUniqueValues(products, "material"), [products]);
+  const fixationTypes = useMemo(() => getUniqueValues(products, "fixation_type"), [products]);
 
   const toggleArray = (arr: string[], val: string) =>
     arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
@@ -138,73 +143,21 @@ const FilterPanel = ({ filters, onChange }: FilterPanelProps) => {
         )}
       </div>
 
-      <CheckboxGroup
-        label="Formato"
-        options={formats}
-        selected={filters.format}
-        onToggle={(v) => onChange({ ...filters, format: toggleArray(filters.format, v) })}
-      />
+      <CheckboxGroup label="Formato" options={formats} selected={filters.format} onToggle={(v) => onChange({ ...filters, format: toggleArray(filters.format, v) })} />
+      <CheckboxGroup label="Marca" options={brands} selected={filters.brand} onToggle={(v) => onChange({ ...filters, brand: toggleArray(filters.brand, v) })} />
+      <CheckboxGroup label="Material" options={materials} selected={filters.material} onToggle={(v) => onChange({ ...filters, material: toggleArray(filters.material, v) })} />
+      <CheckboxGroup label="Tipo de Fixação" options={fixationTypes} selected={filters.fixation_type} onToggle={(v) => onChange({ ...filters, fixation_type: toggleArray(filters.fixation_type, v) })} />
 
-      <CheckboxGroup
-        label="Marca"
-        options={brands}
-        selected={filters.brand}
-        onToggle={(v) => onChange({ ...filters, brand: toggleArray(filters.brand, v) })}
-      />
-
-      <CheckboxGroup
-        label="Material"
-        options={materials}
-        selected={filters.material}
-        onToggle={(v) => onChange({ ...filters, material: toggleArray(filters.material, v) })}
-      />
-
-      <CheckboxGroup
-        label="Tipo de Fixação"
-        options={fixationTypes}
-        selected={filters.fixation_type}
-        onToggle={(v) => onChange({ ...filters, fixation_type: toggleArray(filters.fixation_type, v) })}
-      />
-
-      <RangeInput
-        label="Largura"
-        unit="mm"
-        minVal={filters.width_min}
-        maxVal={filters.width_max}
-        onMinChange={(v) => onChange({ ...filters, width_min: v })}
-        onMaxChange={(v) => onChange({ ...filters, width_max: v })}
-      />
-
-      <RangeInput
-        label="Comprimento"
-        unit="mm"
-        minVal={filters.length_min}
-        maxVal={filters.length_max}
-        onMinChange={(v) => onChange({ ...filters, length_min: v })}
-        onMaxChange={(v) => onChange({ ...filters, length_max: v })}
-      />
-
-      <RangeInput
-        label="Distância entre furos"
-        unit="mm"
-        minVal={filters.hole_distance_min}
-        maxVal={filters.hole_distance_max}
-        onMinChange={(v) => onChange({ ...filters, hole_distance_min: v })}
-        onMaxChange={(v) => onChange({ ...filters, hole_distance_max: v })}
-      />
+      <RangeInput label="Largura" unit="mm" minVal={filters.width_min} maxVal={filters.width_max} onMinChange={(v) => onChange({ ...filters, width_min: v })} onMaxChange={(v) => onChange({ ...filters, width_max: v })} />
+      <RangeInput label="Comprimento" unit="mm" minVal={filters.length_min} maxVal={filters.length_max} onMinChange={(v) => onChange({ ...filters, length_min: v })} onMaxChange={(v) => onChange({ ...filters, length_max: v })} />
+      <RangeInput label="Distância entre furos" unit="mm" minVal={filters.hole_distance_min} maxVal={filters.hole_distance_max} onMinChange={(v) => onChange({ ...filters, hole_distance_min: v })} onMaxChange={(v) => onChange({ ...filters, hole_distance_max: v })} />
     </div>
   );
 
   return (
     <>
-      {/* Mobile toggle */}
       <div className="lg:hidden">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsOpen(!isOpen)}
-          className="mb-4 gap-2"
-        >
+        <Button variant="outline" size="sm" onClick={() => setIsOpen(!isOpen)} className="mb-4 gap-2">
           <SlidersHorizontal className="h-4 w-4" />
           Filtros
           {activeCount > 0 && (
@@ -214,17 +167,11 @@ const FilterPanel = ({ filters, onChange }: FilterPanelProps) => {
           )}
         </Button>
         {isOpen && (
-          <div className="mb-4 rounded-lg border border-border bg-card p-4">
-            {content}
-          </div>
+          <div className="mb-4 rounded-lg border border-border bg-card p-4">{content}</div>
         )}
       </div>
-
-      {/* Desktop sidebar */}
       <aside className="hidden lg:block w-64 shrink-0">
-        <div className="sticky top-20 rounded-lg border border-border bg-card p-4">
-          {content}
-        </div>
+        <div className="sticky top-20 rounded-lg border border-border bg-card p-4">{content}</div>
       </aside>
     </>
   );

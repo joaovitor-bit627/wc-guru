@@ -4,14 +4,16 @@ import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import FilterPanel from "@/components/FilterPanel";
 import ProductGrid from "@/components/ProductGrid";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { defaultFilters, Filters } from "@/data/types";
 import { filterProducts } from "@/lib/filterProducts";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const { data: products = [], isLoading } = useProducts();
 
-  const filtered = useMemo(() => filterProducts(products, filters), [filters]);
+  const filtered = useMemo(() => filterProducts(products, filters), [filters, products]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,12 +36,18 @@ const Index = () => {
 
       {/* Main content */}
       <div className="container py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <FilterPanel filters={filters} onChange={setFilters} />
-          <main className="flex-1 min-w-0">
-            <ProductGrid products={filtered} totalCount={products.length} />
-          </main>
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-6">
+            <FilterPanel filters={filters} onChange={setFilters} products={products} />
+            <main className="flex-1 min-w-0">
+              <ProductGrid products={filtered} totalCount={products.length} />
+            </main>
+          </div>
+        )}
       </div>
     </div>
   );
